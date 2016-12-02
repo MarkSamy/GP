@@ -5,26 +5,32 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 public class main {
-	//size of edges file 
+	private static final int FLUSH_AMOUNT = 10000;
 	public static void constructTable (File edges,File table) throws IOException
 	{
+		
 		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(edges);
+		PrintWriter tableWriter = new PrintWriter(new FileWriter(table));
 		String cmp="-1";
 		int index=0;
 		String str =new String();
+		int nbEdges = 0;
 		while (scanner.hasNext()) {
 			str = scanner.next();
 			String[] matches = str.split(";");
 			String nodeID=matches[0];
 			if(!nodeID.equals(cmp)){
 				cmp=nodeID;
-				@SuppressWarnings("resource")
-				PrintWriter tableWriter = new PrintWriter(new FileWriter(table));
 				tableWriter.println(cmp+" "+index);
 			}
 			index++;
+			nbEdges++;
+			if(nbEdges%FLUSH_AMOUNT == 0){
+				tableWriter.flush();
+			}
 		}
+		tableWriter.close();
 	}
 
 	public static void main(String[] args) throws IOException {
