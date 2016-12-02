@@ -26,6 +26,9 @@ public class zorderfinder {
 					break;
 				}
 			}
+			//hna m3ak current index al mafrod tkmel mn hna seek bel current index w 
+			loop l7d ma al node tt8yar t5azen al 7ba dol f array 3ady ba3den tktebhom f
+			file gnb esm al node w hakza
 			
 			
 		}
