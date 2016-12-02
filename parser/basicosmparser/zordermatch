@@ -1,0 +1,40 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Scanner;
+
+public class zorderfinder {
+	public static void getOrder(File zorder,File table) throws FileNotFoundException
+	{
+		String str =new String();
+		Scanner zorderScanner = new Scanner(zorder);
+
+		while (zorderScanner.hasNext()) 
+		{
+			str = zorderScanner.next();
+			String[] matches = str.split(";");
+			String nodeID=matches[0];
+			Scanner  tableScanner= new Scanner(table);
+			int currIndex=0;
+			while(tableScanner.hasNext())
+			{
+				String row = tableScanner.nextLine();
+				String[]tableNode = row.split(" ");
+				if(nodeID.equals(tableNode[0]))
+				{
+					currIndex=Integer.parseInt(tableNode[1]);
+					System.out.println(currIndex);
+					break;
+				}
+			}
+			
+			
+		}
+	}
+	public static void main(String[] args) throws FileNotFoundException {
+		File zorder = new File("zorder.txt");
+		File table = new File("table.txt");
+		File edges = new File("edges.txt");
+		getOrder(zorder, table);
+
+	}
+}
