@@ -1,11 +1,18 @@
 package basicosmparser;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.RandomAccessFile;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Stream;
 
 public class ZOrderFinder {
 
@@ -14,7 +21,7 @@ public class ZOrderFinder {
 	{
 		long A = Long.parseLong(s);
 		RandomAccessFile raf = new RandomAccessFile("tableEdited.txt", "rw");
-		int l = 0, r = 15344734, mid, it = 50;
+		int l = 0, r = 15344734, mid, it = 30;
 		while(it-- > 0)
 		{
 			mid = (l + r) / 2;
@@ -23,11 +30,7 @@ public class ZOrderFinder {
 			String id[] = alt.split(" ");
 			
 			long B = 0; 
-//			if(id.length == 0)
-//			{
-//				r = mid;
-//				continue;
-//			}
+
 			B = Long.parseLong(id[0]);
 			if(A > B)
 					l = mid;
@@ -65,22 +68,17 @@ public class ZOrderFinder {
 			if (ans=="") {
 				count++;
 			}
-//			while (tableScanner.hasNext()) {
-//				String row = tableScanner.nextLine();
-//				String[] tableNode = row.split(" ");			
-//				if (nodeID.equals(tableNode[0])) {
-//					currIndex = Integer.parseInt(tableNode[1]);
-//					size = Integer.parseInt(tableNode[2]);
-//					break;
-//				}
-//			}
+			else
+			{
+				String[]ansMatches=ans.split(" ");
+				currIndex=Integer.parseInt(ansMatches[1]);
+				size=Integer.parseInt(ansMatches[2]);
+			}
 			listWriter.print(nodeID+";");
 			numberOfLine = currIndex ;
-//			System.out.println(numberOfLine);
 			for (int i = numberOfLine ; i < size+numberOfLine ; i++) {
 				raf.seek(24*i);
 				String c = raf.readLine();
-				System.out.println(c);
 				String[] st = c.split(";");
 				listWriter.print(st[1] + ";" );
 			}
@@ -104,7 +102,9 @@ public class ZOrderFinder {
 
 	public void ZOrderFinderMain() throws IOException {
 		File zorder = new File("ZOrderSorted.txt");
+
 		File table = new File("tableEdited.txt");
+
 		getOrder(zorder, table);
 
 	}
