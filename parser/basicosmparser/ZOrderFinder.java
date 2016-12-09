@@ -38,6 +38,7 @@ public class ZOrderFinder {
 					return alt;
 			else	r = mid;
 		}
+		raf.close();
 		return "";
 	}
 
