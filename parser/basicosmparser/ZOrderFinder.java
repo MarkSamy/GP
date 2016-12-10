@@ -17,10 +17,9 @@ import java.util.stream.Stream;
 public class ZOrderFinder {
 
 	private static final int FLUSH_AMOUNT = 10000;
-	public static String search(String s) throws IOException
+	public static String search(String s,RandomAccessFile raf) throws IOException
 	{
 		long A = Long.parseLong(s);
-		RandomAccessFile raf = new RandomAccessFile("tableEdited.txt", "rw");
 		int l = 0, r = 15344734, mid, it = 30;
 		while(it-- > 0)
 		{
@@ -38,7 +37,7 @@ public class ZOrderFinder {
 					return alt;
 			else	r = mid;
 		}
-		raf.close();
+		
 		return "";
 	}
 
@@ -64,7 +63,11 @@ public class ZOrderFinder {
 			int size = 0;
 			int linesNum = 0;
 			int numberOfLine =0 ;
-			String ans = search(nodeID);
+			RandomAccessFile raf2 = new RandomAccessFile("tableEdited.txt", "rw");
+
+			String ans = search(nodeID,raf2);
+			raf2.close();
+
 			RandomAccessFile raf = new RandomAccessFile("sortedEdited.txt", "rw");
 			if (ans=="") {
 				count++;
@@ -85,6 +88,7 @@ public class ZOrderFinder {
 			}
 			listWriter.println();
 			raf.close();
+
 			linesNum++;
 			if (linesNum % FLUSH_AMOUNT == 0) {
 				listWriter.flush();
