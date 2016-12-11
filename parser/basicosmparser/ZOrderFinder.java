@@ -47,13 +47,14 @@ public class ZOrderFinder {
 		Scanner zorderScanner = new Scanner(zorder);
 		Scanner tableScanner = new Scanner(table);
 		PrintWriter listWriter;
-		File listFile = new File("list.txt");
+		File listFile = new File("list2.txt");
 		listWriter = new PrintWriter(new FileWriter(listFile));
 
 		
 		
 		
 		int count=0;
+		int linesNum = 0;
 
 		while (zorderScanner.hasNext()) {
 			str = zorderScanner.next();
@@ -61,7 +62,6 @@ public class ZOrderFinder {
 			String nodeID = matches[0];
 			int currIndex = 0;
 			int size = 0;
-			int linesNum = 0;
 			int numberOfLine =0 ;
 			RandomAccessFile raf2 = new RandomAccessFile("tableEdited.txt", "rw");
 
@@ -77,16 +77,16 @@ public class ZOrderFinder {
 				String[]ansMatches=ans.split(" ");
 				currIndex=Integer.parseInt(ansMatches[1]);
 				size=Integer.parseInt(ansMatches[2]);
+				listWriter.print(nodeID+";");
+				numberOfLine = currIndex ;
+				for (int i = numberOfLine ; i < size+numberOfLine ; i++) {
+					raf.seek(24*i);
+					String c = raf.readLine();
+					String[] st = c.split(";");
+					listWriter.print(st[1] + ";" );
+				}
+				listWriter.println();
 			}
-			listWriter.print(nodeID+";");
-			numberOfLine = currIndex ;
-			for (int i = numberOfLine ; i < size+numberOfLine ; i++) {
-				raf.seek(24*i);
-				String c = raf.readLine();
-				String[] st = c.split(";");
-				listWriter.print(st[1] + ";" );
-			}
-			listWriter.println();
 			raf.close();
 
 			linesNum++;
