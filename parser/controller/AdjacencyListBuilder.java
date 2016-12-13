@@ -11,7 +11,7 @@ import java.util.Scanner;
 
 public class AdjacencyListBuilder {
 
-	private static final int FLUSH_AMOUNT = 100000;
+	private static final int FLUSH_AMOUNT = 10000;
 
 	private static int countLines(File table) throws IOException {
 		int i = 0;
@@ -88,9 +88,7 @@ public class AdjacencyListBuilder {
 				linesNum++;
 				if (linesNum % FLUSH_AMOUNT == 0) {
 					listWriter.flush();
-					System.out.println("flush");
 					linesNum = 0;
-					return;
 				}
 			}
 		}
