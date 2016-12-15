@@ -2,11 +2,11 @@ package controller;
 
 import java.io.*;
 import java.util.HashMap;
-import java.util.Scanner;
 
 public class SmallGraphBuilder {
 
 	private static final int NODES_PER_PAGE = 4000;
+	private static final int FLUSH_AMOUNT = 10000;
 
 	private int countLines(String file) throws IOException {
 		int i = 0;
@@ -22,12 +22,13 @@ public class SmallGraphBuilder {
 
 	public void generateSmallGraph() throws FileNotFoundException, IOException {
 		String file = "list.txt";
-		int maxLen = Edit(file);
+		int maxLen = setOffsets(file);
 		int size = countLines(file);
+		//// System.out.println(maxLen + " " + size);//253 15344731
 		int pageNo = 0;
 		PrintWriter smallGraphWriter = new PrintWriter(new FileWriter("smallgraph.txt"));
 		while (size > 0) {
-			loadPage("listEdited.txt", maxLen, pageNo, smallGraphWriter);
+			loadPage("listTableEdited.txt", maxLen, pageNo, smallGraphWriter);
 			pageNo++;
 			smallGraphWriter.flush();
 			size -= NODES_PER_PAGE;
@@ -35,72 +36,113 @@ public class SmallGraphBuilder {
 		smallGraphWriter.close();
 	}
 
-	private int Edit(String file) throws IOException {
-		PrintWriter writer = new PrintWriter(new FileWriter("listEdited.txt"));
-		Scanner scanner = new Scanner(new File(file));
-		int maxLen = 0;
+	private int setOffsets(String file) throws IOException {
+		PrintWriter writer = new PrintWriter(new FileWriter("listTable.txt"));
+		BufferedReader brOne = new BufferedReader(new FileReader(file));
+		long sizeInBytes = 0;
+		writer.print(sizeInBytes + ";");
 		long start1 = System.nanoTime();
-		while (scanner.hasNext()) {
-			String myString = scanner.nextLine();
-			if (myString.length() > maxLen) {
-				maxLen = myString.length();
+		String s = brOne.readLine();
+		int index = 0;
+		int flush = 0;
+		while (s != null) {
+			sizeInBytes += (s.length() + 2);
+			index++;
+			if (index % NODES_PER_PAGE == 0) {
+				writer.println(sizeInBytes);
+				writer.print(sizeInBytes + ";");
+				index = 0;
 			}
+			flush += 2;
+			if (flush % FLUSH_AMOUNT == 0) {
+				writer.flush();
+			}
+			s = brOne.readLine();
 		}
+		writer.println(sizeInBytes);
+		brOne.close();
+		writer.close();
+
+		int maxLen = 0;
+		BufferedReader brTwo = new BufferedReader(new FileReader("listTable.txt"));
+		String line = brTwo.readLine();
+		while (line != null) {
+			if (line.length() > maxLen) {
+				maxLen = line.length();
+			}
+			line = brTwo.readLine();
+		}
+		brTwo.close();
+
+		PrintWriter lTableWriter = new PrintWriter(new FileWriter("listTableEdited.txt"));
+		BufferedReader brThree = new BufferedReader(new FileReader("listTable.txt"));
+		String myString = brThree.readLine();
 		int noLines = 0;
-		Scanner scannerTwo = new Scanner(new File(file));
-		while (scannerTwo.hasNext()) {
-			String myString = scannerTwo.nextLine();
+		while (myString != null) {
 			while (myString.length() < maxLen) {
 				myString += " ";
 			}
-			writer.println(myString);
+			lTableWriter.println(myString);
 			noLines++;
 			if (noLines % 100000 == 0) {
-				writer.flush();
+				lTableWriter.flush();
 			}
+			myString = brThree.readLine();
 		}
-		writer.close();
-		scanner.close();
-		scannerTwo.close();
+		brThree.close();
+		lTableWriter.close();
+
 		long time1 = System.nanoTime() - start1;
 		System.out.println(time1 / 1e9);
 		System.out.println("Edited list successfully without errors.");
 		return maxLen;
 	}
 
-	private void loadPage(String file, int maxLineLen, int offset, PrintWriter pw) throws IOException {
+	private void loadPage(String file, int maxLen, int page, PrintWriter pw) throws IOException {
 		HashMap<String, Integer> hm = new HashMap<>();
 		StringBuilder sb = new StringBuilder();
 		RandomAccessFile raf = new RandomAccessFile(new File(file), "r");
-		for (int i = (offset * NODES_PER_PAGE); i < ((offset * NODES_PER_PAGE) + NODES_PER_PAGE); i++) {
-			raf.seek((maxLineLen + 2) * i);
-			String s = raf.readLine();
-			if (s.trim() != null) {
-				String[] matches = s.split(";");
-				hm.put(matches[0], 0);
+		long startOffset = -1, endOffset = -1;
+		raf.seek((maxLen + 2) * page); // Get line that includes my offsets
+		String offsets = raf.readLine().trim();
+		raf.close();
+		String[] offsetsMatches = offsets.split(";");
+		startOffset = Long.parseLong(offsetsMatches[0]);
+		endOffset = Long.parseLong(offsetsMatches[1]);
+		RandomAccessFile rafList = new RandomAccessFile("list.txt", "r");
+		long temp = startOffset;
+		while (temp != endOffset) {
+			rafList.seek(temp);
+			String s = rafList.readLine();
+			if (s != null) {
+				String[] nodes = s.split(";");
+				hm.put(nodes[0], 0);
 			}
+			temp += (s.length() + 2);
 		}
-		for (int i = (offset * NODES_PER_PAGE); i < ((offset * NODES_PER_PAGE) + NODES_PER_PAGE); i++) {
-			raf.seek((maxLineLen + 2) * i);
-			String s = raf.readLine();
-			if (s.trim() != null) {
-				String[] matches = s.trim().split(";");
-				pw.print(matches[0]);
-				for (int j = 1; j < matches.length; j++) {
-					if (!hm.containsKey(matches[j])) {
-						sb.append(";" + matches[j]);
+		temp = startOffset;
+		while (temp != endOffset) {
+			rafList.seek(temp);
+			String s = rafList.readLine();
+			if (s != null) {
+				String[] nodes = s.split(";");
+				pw.print(nodes[0]);
+				for (int j = 1; j < nodes.length; j++) {
+					if (!hm.containsKey(nodes[j])) {
+						sb.append(";" + nodes[j]);
 					} else {
-						pw.print(";" + matches[j]);
+						pw.print(";" + nodes[j]);
 					}
 				}
+				if (sb.length() > 0) {
+					pw.print(";external");
+					pw.print(sb);
+				}
+				pw.println();
+				sb = new StringBuilder();
 			}
-			if (sb.length() > 0) {
-				pw.print(";external");
-				pw.print(sb);
-			}
-			pw.println();
-			sb = new StringBuilder();
+			temp += (s.length() + 2);
 		}
-		raf.close();
+		rafList.close();
 	}
 }
