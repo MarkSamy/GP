@@ -21,9 +21,10 @@ public class HashTable {
 			str = scanner.next();
 			String[] matches = str.split(";");
 			String nodeID = matches[0];
-		
 			if (!nodeID.equals(cmp)) {
-				tableWriter.println(index-ref);
+				if((index-ref) > 0){
+					tableWriter.println(index-ref);
+				}
 				cmp = nodeID;
 				tableWriter.print(cmp + " " + index + " ");
 				ref=index;
@@ -34,6 +35,7 @@ public class HashTable {
 				tableWriter.flush();
 			}
 		}
+		tableWriter.println(index-ref);
 		tableWriter.flush();
 		tableWriter.close();
 		scanner.close();
