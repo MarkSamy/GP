@@ -1,148 +1,80 @@
 package controller;
 
-import java.io.*;
-import java.util.HashMap;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 
-public class SmallGraphBuilder {
+/**
+ * @inputs the whole adjacency list file (test2.txt)
+ * @outputs SuperGraphExternalAdjacencyList.txt that contains external edges,
+ *          edges connecting two different super-nodes and
+ *          SuperGraphInternalAdjacencyList.txt, that contains internal edges,
+ *          edges connecting two different nodes in the same super-node
+ */
 
+public class SuperGraphBuilder {
+	
 	private static final int NODES_PER_PAGE = 4000;
-	private static final int FLUSH_AMOUNT = 10000;
+	private final static int FLUSH_AMOUNT = 10000;
 
-	private int countLines(String file) throws IOException {
-		int i = 0;
-		BufferedReader br = new BufferedReader(new FileReader(file));
-		String line = br.readLine();
-		while (line != null) {
-			i++;
-			line = br.readLine();
-		}
-		br.close();
-		return i;
-	}
-
-	public void generateSmallGraph() throws FileNotFoundException, IOException {
-		String file = "list.txt";
-		int maxLen = setOffsets(file);
-		int size = countLines(file);
-		//// System.out.println(maxLen + " " + size);//253 15344731
+	public void SuperGraphBuilderMain() throws IOException {
+		File file = new File("smallgraph.txt");
+		PrintWriter externalGraphWriter = new PrintWriter(
+				new FileWriter(new File("SuperGraphExternalAdjacencyList.txt")));
+		PrintWriter internalGraphWriter = new PrintWriter(
+				new FileWriter(new File("SuperGraphInternalAdjacencyList.txt")));
+		int nbLines = 0;
 		int pageNo = 0;
-		PrintWriter smallGraphWriter = new PrintWriter(new FileWriter("smallgraph.txt"));
-		while (size > 0) {
-			loadPage("listTableEdited.txt", maxLen, pageNo, smallGraphWriter);
-			pageNo++;
-			smallGraphWriter.flush();
-			size -= NODES_PER_PAGE;
-		}
-		smallGraphWriter.close();
-	}
-
-	private int setOffsets(String file) throws IOException {
-		PrintWriter writer = new PrintWriter(new FileWriter("listTable.txt"));
-		BufferedReader brOne = new BufferedReader(new FileReader(file));
-		long sizeInBytes = 0;
-		writer.print(sizeInBytes + ";");
-		long start1 = System.nanoTime();
-		String s = brOne.readLine();
-		int index = 0;
-		int flush = 0;
-		while (s != null) {
-			sizeInBytes += (s.length() + 2);
-			index++;
-			if (index % NODES_PER_PAGE == 0) {
-				writer.println(sizeInBytes);
-				writer.print(sizeInBytes + ";");
-				index = 0;
-			}
-			flush += 2;
-			if (flush % FLUSH_AMOUNT == 0) {
-				writer.flush();
-			}
-			s = brOne.readLine();
-		}
-		writer.println(sizeInBytes);
-		brOne.close();
-		writer.close();
-
-		int maxLen = 0;
-		BufferedReader brTwo = new BufferedReader(new FileReader("listTable.txt"));
-		String line = brTwo.readLine();
-		while (line != null) {
-			if (line.length() > maxLen) {
-				maxLen = line.length();
-			}
-			line = brTwo.readLine();
-		}
-		brTwo.close();
-
-		PrintWriter lTableWriter = new PrintWriter(new FileWriter("listTableEdited.txt"));
-		BufferedReader brThree = new BufferedReader(new FileReader("listTable.txt"));
-		String myString = brThree.readLine();
-		int noLines = 0;
-		while (myString != null) {
-			while (myString.length() < maxLen) {
-				myString += " ";
-			}
-			lTableWriter.println(myString);
-			noLines++;
-			if (noLines % 100000 == 0) {
-				lTableWriter.flush();
-			}
-			myString = brThree.readLine();
-		}
-		brThree.close();
-		lTableWriter.close();
-
-		long time1 = System.nanoTime() - start1;
-		System.out.println(time1 / 1e9);
-		System.out.println("Edited list successfully without errors.");
-		return maxLen;
-	}
-
-	private void loadPage(String file, int maxLen, int page, PrintWriter pw) throws IOException {
-		HashMap<String, Integer> hm = new HashMap<>();
-		StringBuilder sb = new StringBuilder();
-		RandomAccessFile raf = new RandomAccessFile(new File(file), "r");
-		long startOffset = -1, endOffset = -1;
-		raf.seek((maxLen + 2) * page); // Get line that includes my offsets
-		String offsets = raf.readLine().trim();
-		raf.close();
-		String[] offsetsMatches = offsets.split(";");
-		startOffset = Long.parseLong(offsetsMatches[0]);
-		endOffset = Long.parseLong(offsetsMatches[1]);
-		RandomAccessFile rafList = new RandomAccessFile("list.txt", "r");
-		long temp = startOffset;
-		while (temp != endOffset) {
-			rafList.seek(temp);
-			String s = rafList.readLine();
-			if (s != null) {
-				String[] nodes = s.split(";");
-				hm.put(nodes[0], 0);
-			}
-			temp += (s.length() + 2);
-		}
-		temp = startOffset;
-		while (temp != endOffset) {
-			rafList.seek(temp);
-			String s = rafList.readLine();
-			if (s != null) {
-				String[] nodes = s.split(";");
-				pw.print(nodes[0]);
-				for (int j = 1; j < nodes.length; j++) {
-					if (!hm.containsKey(nodes[j])) {
-						sb.append(";" + nodes[j]);
-					} else {
-						pw.print(";" + nodes[j]);
+		externalGraphWriter.println("page " + pageNo);
+		internalGraphWriter.println("page " + pageNo);
+		BufferedReader br = new BufferedReader(new FileReader(file));
+		String Edge = br.readLine();
+		while (Edge!=null) {
+			if (Edge.contains("external")) {
+				String[] nodes = Edge.split(";");
+				if(nodes[1].compareTo("external") != 0){
+					int k = 1;
+					internalGraphWriter.print(nodes[0]);
+					while (nodes[k].compareTo("external") != 0) {
+						internalGraphWriter.print(";" + nodes[k]);
+						k++;
 					}
+					internalGraphWriter.println();
 				}
-				if (sb.length() > 0) {
-					pw.print(";external");
-					pw.print(sb);
+				int i = 0;
+				while (nodes[i].compareTo("external") != 0) {
+					i++;
 				}
-				pw.println();
-				sb = new StringBuilder();
+				externalGraphWriter.print(nodes[0]);
+				for (int j = i + 1; j < nodes.length; j++) {
+					externalGraphWriter.print(";" + nodes[j]);
+				}
+				externalGraphWriter.println();
+			} else {
+				String[] nodes = Edge.split(";");
+				internalGraphWriter.print(nodes[0]);
+				for (int j = 1; j < nodes.length; j++) {
+					internalGraphWriter.print(";" + nodes[j]);
+				}
+				internalGraphWriter.println();
 			}
-			temp += (s.length() + 2);
+			nbLines++;
+			if (nbLines % NODES_PER_PAGE == 0) {
+				pageNo++;
+				externalGraphWriter.println("page " + pageNo);
+				internalGraphWriter.println("page " + pageNo);
+			}
+			if (nbLines % FLUSH_AMOUNT == 0) {
+				externalGraphWriter.flush();
+				internalGraphWriter.flush();
+			}
+			Edge = br.readLine();
 		}
-		rafList.close();
+		externalGraphWriter.close();
+		internalGraphWriter.close();
+		br.close();
 	}
 }
