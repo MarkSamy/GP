@@ -39,8 +39,8 @@ public class Curve {
 	}
 
 	private void read() throws IOException {
-		File input = new File("edges.txt");
-		File output = new File("edgesZOrder.txt");
+		File input = new File("nodesv2.txt");
+		File output = new File("ZOrder.txt");
 		PrintWriter scaleWriter = new PrintWriter(new FileWriter(output));
 		Scanner scanner = new Scanner(input);
 		int sz = 0;
@@ -50,8 +50,8 @@ public class Curve {
 			int latValue = (int) (10000000 * Double.valueOf(matches[1]));
 			int lonValue = (int) (10000000 * Double.valueOf(matches[2]));
 			BigInteger Zvalue = calcZOrder(latValue, lonValue);
-			scaleWriter.write(matches[0] + ";");
-			scaleWriter.println(Zvalue.toString());
+			scaleWriter.write(Zvalue.toString()+";");
+			scaleWriter.println(matches[0]);
 			sz++;
 			if (sz % FLUSH_AMOUNT == 0) {
 				scaleWriter.flush();
