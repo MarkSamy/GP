@@ -70,11 +70,11 @@ public class BasicOSMParser {
 	public static void main(String[] args) throws IOException, InterruptedException, SAXException {
 		// TODO Check arguments
 		BasicOSMParser bop = new BasicOSMParser();
-		/*
-		 * Parse OSM File and export it as 5 files ( nodes.txt , ways.txt ,
-		 * rels.txt , nodesv2.txt(includes only nodes ids,lon and lat of each)
-		 * and edges.txt
-		 */
+//		/*
+//		 * Parse OSM File and export it as 5 files ( nodes.txt , ways.txt ,
+//		 * rels.txt , nodesv2.txt(includes only nodes ids,lon and lat of each)
+//		 * and edges.txt
+//		 */
 		bop.DoProject(args);
 		bop.SortEdges();
 		/* Create the Hash Table of edges and export to table.txt */
@@ -86,8 +86,8 @@ public class BasicOSMParser {
 		bop.DoZOrder();
 		bop.AdjacencyList();
 		bop.SortZOrder();
-//		bop.SmallGraph();
-//		bop.SuperGraph();
+		bop.SmallGraph();
+		bop.SuperGraph();
 //		bop.FindWeights();
 	}
 
