@@ -1,25 +1,24 @@
 package controller;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Scanner;
 
 public class WeightedEdges {
 
 	private static final int FLUSH_AMOUNT = 10000;
 
-	public static void main(String[] args) throws IOException {
+	public void WeightedEdgesMain() throws IOException {
 		File join = new File("Join.txt");
-		Scanner scanner = new Scanner(join);
-		long startTime = System.currentTimeMillis();
+		BufferedReader br = new BufferedReader(new FileReader(join));
 		PrintWriter tableWriter = new PrintWriter(new FileWriter("weightedEdges.txt"));
-
 		DistanceCaltulator distanceCaltulator = new DistanceCaltulator();
 		int nbEdges = 0;
-		while (scanner.hasNext()) {
-			String myString = scanner.nextLine();
+		String myString = br.readLine();
+		while (myString != null) {
 			String[] matches = myString.split(";");
 			tableWriter.print(matches[0] + ";" + matches[3] + ";");
 			tableWriter.println(distanceCaltulator.getDistanceFromLatLonInKm(Double.valueOf(matches[1]),
@@ -27,14 +26,11 @@ public class WeightedEdges {
 
 			if (nbEdges % FLUSH_AMOUNT == 0) {
 				tableWriter.flush();
-				System.out.println(nbEdges);
 			}
 			nbEdges = nbEdges + 2;
+			myString = br.readLine();
 		}
-		long stopTime = System.currentTimeMillis();
-		long elapsedTime = stopTime - startTime;
-		System.out.println(elapsedTime);
 		tableWriter.close();
-		scanner.close();
+		br.close();
 	}
 }
