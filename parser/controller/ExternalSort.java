@@ -104,7 +104,7 @@ public class ExternalSort {
 	 */
 	public void ExternalSortMain(int action) throws IOException {
 		Charset cs = Charset.defaultCharset();
-		String inputfile = "list.txt", outputfile = "sortedlist.txt";
+		String inputfile = "list.txt", outputfile = "sortedlistTP.txt";
 		if(action == 0){
 			inputfile = "edges.txt";
 			outputfile = "sortedEdges.txt";
@@ -813,8 +813,8 @@ public class ExternalSort {
 		public int compare(String r1, String r2) {
 			String[] nodeOne = r1.split(";");
 			String[] nodeTwo = r2.split(";");
-			BigInteger zorderOne = new BigInteger(nodeOne[1]);
-			BigInteger zorderTwo = new BigInteger(nodeTwo[1]);
+			BigInteger zorderOne = new BigInteger(nodeOne[0]);
+			BigInteger zorderTwo = new BigInteger(nodeTwo[0]);
 			return zorderOne.compareTo(zorderTwo);
 		}
 	};
