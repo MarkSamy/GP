@@ -24,7 +24,7 @@ public class SmallGraphBuilder {
 		String file = "list.txt";
 		int maxLen = setOffsets(file);
 		int size = countLines(file);
-		//// System.out.println(maxLen + " " + size);//253 15344731
+		// //// System.out.println(maxLen + " " + size);//253 15344731
 		int pageNo = 0;
 		PrintWriter smallGraphWriter = new PrintWriter(new FileWriter("smallgraph.txt"));
 		while (size > 0) {
@@ -46,7 +46,7 @@ public class SmallGraphBuilder {
 		int index = 0;
 		int flush = 0;
 		while (s != null) {
-			sizeInBytes += (s.length() + 2);
+			sizeInBytes += (s.length() + 1);
 			index++;
 			if (index % NODES_PER_PAGE == 0) {
 				writer.println(sizeInBytes);
@@ -90,14 +90,14 @@ public class SmallGraphBuilder {
 		brThree.close();
 		lTableWriter.close();
 		long time1 = System.nanoTime() - start1;
-		System.out.println("[INFO] Set file offsets ................... SUCCESS ["+ (time1 / 1e9) +"]");
+		System.out.println("[INFO] Set file offsets ................... SUCCESS [" + (time1 / 1e9) + "]");
 		return maxLen;
 	}
 
 	private void loadPage(String file, int maxLen, int page, PrintWriter pw) throws IOException {
 		HashMap<String, Integer> hm = new HashMap<>();
 		StringBuilder sb = new StringBuilder();
-		RandomAccessFile raf = new RandomAccessFile(new File(file), "r");
+		OptimizedRandomAccessFile raf = new OptimizedRandomAccessFile(new File(file), "r");
 		long startOffset = -1, endOffset = -1;
 		raf.seek((maxLen + 2) * page); // Get line that includes my offsets
 		String offsets = raf.readLine().trim();
@@ -105,16 +105,16 @@ public class SmallGraphBuilder {
 		String[] offsetsMatches = offsets.split(";");
 		startOffset = Long.parseLong(offsetsMatches[0]);
 		endOffset = Long.parseLong(offsetsMatches[1]);
-		RandomAccessFile rafList = new RandomAccessFile("list.txt", "r");
+		OptimizedRandomAccessFile rafList = new OptimizedRandomAccessFile("list.txt", "r");
 		long temp = startOffset;
 		while (temp != endOffset) {
 			rafList.seek(temp);
 			String s = rafList.readLine();
 			if (s != null) {
 				String[] nodes = s.split(";");
-				hm.put(nodes[0], 0);
+				hm.put(nodes[1], 0);
 			}
-			temp += (s.length() + 2);
+			temp += (s.length() + 1);
 		}
 		temp = startOffset;
 		while (temp != endOffset) {
@@ -122,8 +122,8 @@ public class SmallGraphBuilder {
 			String s = rafList.readLine();
 			if (s != null) {
 				String[] nodes = s.split(";");
-				pw.print(nodes[0]);
-				for (int j = 1; j < nodes.length; j++) {
+				pw.print(nodes[1]);
+				for (int j = 2; j < nodes.length; j++) {
 					if (!hm.containsKey(nodes[j])) {
 						sb.append(";" + nodes[j]);
 					} else {
@@ -137,8 +137,9 @@ public class SmallGraphBuilder {
 				pw.println();
 				sb = new StringBuilder();
 			}
-			temp += (s.length() + 2);
+			temp += (s.length() + 1);
 		}
 		rafList.close();
 	}
+	
 }
