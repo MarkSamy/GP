@@ -16,19 +16,18 @@ public class BasicOSMParser {
 
 	private void DoProject(String[] args) throws IOException, SAXException {
 		String[] argus = new String[1];
-		// argus[0] = "egypt-latest.osm";
-//		argus[0] = "new-york-latest.osm";
-		 argus[0] = "maldives-latest.osm";
+//		 argus[0] = "egypt-latest.osm";
+		argus[0] = "new-york-latest.osm";
+//		 argus[0] = "maldives-latest.osm";
 		if (argus.length != 1) {
-			System.out.println("Invalid parameters.\nCommand usage: basicosmparser <Input OSM XML>");
+			System.out.println("[ERROR] Invalid parameters.\nCommand usage: basicosmparser <Input OSM XML>");
 		} else {
 			File input = new File(argus[0]);
 			OSMParser parser = new OSMParser();
 			long start1 = System.nanoTime();
 			parser.parse(input);
 			long time1 = System.nanoTime() - start1;
-			System.out.println(time1 / 1e9);
-			System.out.println("Exported data successfully without errors.");
+			System.out.println("[INFO] Exported data ................... SUCCESS ["+ (time1 / 1e9) +"]");
 		}
 	}
 
@@ -37,17 +36,15 @@ public class BasicOSMParser {
 		long start1 = System.nanoTime();
 		ht.constructTableMain();
 		long time1 = System.nanoTime() - start1;
-		System.out.println(time1 / 1e9);
-		System.out.println("Exported hash table successfully without errors.");
+		System.out.println("[INFO] Exported hashtable ................... SUCCESS ["+ (time1 / 1e9) +"]");
 	}
 
 	private void AdjacencyList(int maxLenTable, int maxLenEdges) throws IOException {
-		AdjacencyListBuilder alb = new AdjacencyListBuilder();
+		AdjacencyListBuilder_OLD alb = new AdjacencyListBuilder_OLD();
 		long start1 = System.nanoTime();
 		alb.AdjacencyListBuilderMain(maxLenTable, maxLenEdges);
 		long time1 = System.nanoTime() - start1;
-		System.out.println(time1 / 1e9);
-		System.out.println("Exported adjacency list successfully without errors.");
+		System.out.println("[INFO] Exported adjacency list ................... SUCCESS ["+ (time1 / 1e9) +"]");
 	}
 
 	private void DoZOrder() throws IOException {
@@ -55,8 +52,7 @@ public class BasicOSMParser {
 		long start1 = System.nanoTime();
 		c.CurveMain();
 		long time1 = System.nanoTime() - start1;
-		System.out.println(time1 / 1e9);
-		System.out.println("Exported zorder successfully without errors.");
+		System.out.println("[INFO] Exported ZOrder ................... SUCCESS ["+ (time1 / 1e9) +"]");
 	}
 
 	private int Edit(int caller) throws IOException {
@@ -97,11 +93,10 @@ public class BasicOSMParser {
 		br.close();
 		writer.close();
 		long time1 = System.nanoTime() - start1;
-		System.out.println(time1 / 1e9);
 		if (caller == 0) {
-			System.out.println("Edited edges successfully without errors.");
+			System.out.println("[INFO] Edited edges ................... SUCCESS ["+ (time1 / 1e9) +"]");
 		} else {
-			System.out.println("Edited hashtable successfully without errors.");
+			System.out.println("[INFO] Edited hash table ................... SUCCESS ["+ (time1 / 1e9) +"]");
 		}
 		return maxLen;
 	}
@@ -111,8 +106,7 @@ public class BasicOSMParser {
 		long start1 = System.nanoTime();
 		es.ExternalSortMain(0);
 		long time1 = System.nanoTime() - start1;
-		System.out.println(time1 / 1e9);
-		System.out.println("Sorted edges successfully without errors.");
+		System.out.println("[INFO] Sorted edges ................... SUCCESS ["+ (time1 / 1e9) +"]");
 	}
 
 	private void SortZOrder() throws IOException {
@@ -120,9 +114,7 @@ public class BasicOSMParser {
 		long start1 = System.nanoTime();
 		es.ExternalSortMain(1);
 		long time1 = System.nanoTime() - start1;
-		System.out.println(time1 / 1e9);
-		System.out.println("Sorted zorder successfully without errors.");
-
+		System.out.println("[INFO] Sorted ZOrder ................... SUCCESS ["+ (time1 / 1e9) +"]");
 	}
 
 	private void SmallGraph() throws FileNotFoundException, IOException {
@@ -130,8 +122,7 @@ public class BasicOSMParser {
 		long start1 = System.nanoTime();
 		sg.generateSmallGraph();
 		long time1 = System.nanoTime() - start1;
-		System.out.println(time1 / 1e9);
-		System.out.println("Exported small graph successfully without errors.");
+		System.out.println("[INFO] Exported small graph ................... SUCCESS ["+ (time1 / 1e9) +"]");
 	}
 
 	private void SuperGraph() throws IOException {
@@ -139,8 +130,7 @@ public class BasicOSMParser {
 		long start1 = System.nanoTime();
 		sg.SuperGraphBuilderMain();
 		long time1 = System.nanoTime() - start1;
-		System.out.println(time1 / 1e9);
-		System.out.println("Exported super graph successfully without errors.");
+		System.out.println("[INFO] Exported super graph ................... SUCCESS ["+ (time1 / 1e9) +"]");
 	}
 
 	public static void main(String[] args) throws IOException, InterruptedException, SAXException {
@@ -152,21 +142,28 @@ public class BasicOSMParser {
 		 * and edges.txt
 		 */
 		bop.DoProject(args);
-		bop.FindWeights();
 		bop.SortEdges();
 		/* Create the Hash Table of edges and export to table.txt */
-		bop.CreateHashTable(); /*
+//		bop.CreateHashTable(); 
+								/*
 								 * Find Z-Order of each node and export to
 								 * ScaledNodes.txt
 								 */
 		bop.DoZOrder();
+		bop.AdjacencyList();
 		bop.SortZOrder();
-		int maxLenEdges = bop.Edit(0);
-		int maxLenTable = bop.Edit(1);
-		// System.out.println(maxLenTable + " " + maxLenEdges);
-		bop.AdjacencyList(maxLenTable, maxLenEdges); // Egypt 21 21
-		bop.SmallGraph();
-		bop.SuperGraph();
+//		bop.SmallGraph();
+//		bop.SuperGraph();
+//		bop.FindWeights();
+	}
+
+	private void AdjacencyList() throws IOException {
+		// TODO Auto-generated method stub
+		AdjacencyListBuilder tp = new AdjacencyListBuilder();
+		long start1 = System.nanoTime();
+		tp.TP_Main();
+		long time1 = System.nanoTime() - start1;
+		System.out.println("[INFO] Exported Adjacency list ................... SUCCESS ["+ (time1 / 1e9) +"]");
 	}
 
 	private void FindWeights() throws IOException {
@@ -174,7 +171,8 @@ public class BasicOSMParser {
 		long start1 = System.nanoTime();
 		we.WeightedEdgesMain();
 		long time1 = System.nanoTime() - start1;
-		System.out.println(time1 / 1e9);
-		System.out.println("Computed edges weights successfully without errors.");
+		System.out.println("[INFO] Exported weighted edges ................... SUCCESS ["+ (time1 / 1e9) +"]");
 	}
+	
+	
 }
