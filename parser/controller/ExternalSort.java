@@ -104,7 +104,7 @@ public class ExternalSort {
 	 */
 	public void ExternalSortMain(int action) throws IOException {
 		Charset cs = Charset.defaultCharset();
-		String inputfile = "ZOrder.txt", outputfile = "sortedZOrder.txt";
+		String inputfile = "list.txt", outputfile = "sortedlist.txt";
 		if(action == 0){
 			inputfile = "edges.txt";
 			outputfile = "sortedEdges.txt";
