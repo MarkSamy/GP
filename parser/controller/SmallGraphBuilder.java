@@ -21,7 +21,7 @@ public class SmallGraphBuilder {
 	}
 
 	public void generateSmallGraph() throws FileNotFoundException, IOException {
-		String file = "list.txt";
+		String file = "sortedlistTP.txt";
 		int maxLen = setOffsets(file);
 		int size = countLines(file);
 		// //// System.out.println(maxLen + " " + size);//253 15344731
