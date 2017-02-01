@@ -11,5 +11,5 @@ Incremental release **01/02/2017 02:24:13** GPv2.jar
 
 ----------
 
-1) Improved Adjacency list building time performance from 5.30 hours to 93 seconds
-2) Improve small graph performance to 331 seconds from past 1875 one
+>1) Improved Adjacency list building time performance from 5.30 hours to 93 seconds
+>2) Improve small graph performance to 331 seconds from past 1875 one
