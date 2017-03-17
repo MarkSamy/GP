@@ -20,12 +20,17 @@ public class SuperGraphBuilder {
 	private static final int NODES_PER_PAGE = 4000;
 	private final static int FLUSH_AMOUNT = 10000;
 
-	public void SuperGraphBuilderMain() throws IOException {
-		File file = new File("smallgraph.txt");
+	public void SuperGraphBuilderMain(String[] args) throws IOException {
+		File file = new File(args[0]);
+		/*
+		args[0] Files.SMALL_GRAPH
+		args[1] Files.SUPER_GRAPH_EXTERNAL
+		args[2] Files.SUPER_GRAPH_INTERNAL
+		*/
 		PrintWriter externalGraphWriter = new PrintWriter(
-				new FileWriter(new File("SuperGraphExternalAdjacencyList.txt")));
+				new FileWriter(new File(args[1])));
 		PrintWriter internalGraphWriter = new PrintWriter(
-				new FileWriter(new File("SuperGraphInternalAdjacencyList.txt")));
+				new FileWriter(new File(args[2])));
 		int nbLines = 0;
 		int pageNo = 0;
 		externalGraphWriter.println("page " + pageNo);
