@@ -21,9 +21,6 @@ import java.util.Iterator;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
-import java.util.zip.Deflater;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * Goal: offer a generic external-memory sorting program in Java.
@@ -97,25 +94,20 @@ public class ExternalSort {
 	}
 
 	/**
-	 * @param args
-	 *            action : tells what action to do whether sort on edges or ZOrder
+	 * @param args:
+	 *            Method files
 	 * @throws IOException
 	 *             generic IO exception
 	 */
-	public void ExternalSortMain(int action) throws IOException {
+	public void ExternalSortMain(String[] args) throws IOException {
 		Charset cs = Charset.defaultCharset();
-		String inputfile = "list.txt", outputfile = "sortedlistTP.txt";
-		if(action == 0){
-			inputfile = "edges.txt";
-			outputfile = "sortedEdges.txt";
-		}
-		Comparator<String> comparator = sortOnZOrder;
-		if(action == 0){
-			comparator = sortEdges;
-		}
-		List<File> l = sortInBatch(new File(inputfile), comparator, DEFAULTMAXTEMPFILES, cs, null, false,
-				0, false, true);
-		mergeSortedFiles(l, new File(outputfile), comparator, cs, false, false, false);
+		String inputfile = args[0], outputfile = args[1];
+		File inFile = new File(inputfile);
+		List<File> l = sortInBatch(inFile, comp, DEFAULTMAXTEMPFILES, cs, null, false, 0, false, true);
+		mergeSortedFiles(l, new File(outputfile), comp, cs, false, false, false);
+//		if(inFile.delete()){
+//			System.out.println(inFile.getName() + " deleted");
+//		}
 	}
 
 	/**
@@ -215,7 +207,7 @@ public class ExternalSort {
 	 *             generic IO exception
 	 */
 	public static int mergeSortedFiles(List<File> files, File outputfile) throws IOException {
-		return mergeSortedFiles(files, outputfile, sortOnZOrder, Charset.defaultCharset());
+		return mergeSortedFiles(files, outputfile, comp, Charset.defaultCharset());
 	}
 
 	/**
@@ -330,15 +322,9 @@ public class ExternalSort {
 			boolean distinct, boolean append, boolean usegzip) throws IOException {
 		ArrayList<BinaryFileBuffer> bfbs = new ArrayList<>();
 		for (File f : files) {
-			final int BUFFERSIZE = 2048;
 			InputStream in = new FileInputStream(f);
 			BufferedReader br;
-			if (usegzip) {
-				br = new BufferedReader(new InputStreamReader(new GZIPInputStream(in, BUFFERSIZE), cs));
-			} else {
-				br = new BufferedReader(new InputStreamReader(in, cs));
-			}
-
+			br = new BufferedReader(new InputStreamReader(in, cs));
 			BinaryFileBuffer bfb = new BinaryFileBuffer(br);
 			bfbs.add(bfb);
 		}
@@ -420,14 +406,6 @@ public class ExternalSort {
 		File newtmpfile = File.createTempFile("sortInBatch", "flatfile", tmpdirectory);
 		newtmpfile.deleteOnExit();
 		OutputStream out = new FileOutputStream(newtmpfile);
-		int ZIPBUFFERSIZE = 2048;
-		if (usegzip) {
-			out = new GZIPOutputStream(out, ZIPBUFFERSIZE) {
-				{
-					this.def.setLevel(Deflater.BEST_SPEED);
-				}
-			};
-		}
 		try (BufferedWriter fbw = new BufferedWriter(new OutputStreamWriter(out, cs))) {
 			if (!distinct) {
 				for (String r : tmplist) {
@@ -470,7 +448,7 @@ public class ExternalSort {
 	 *             generic IO exception
 	 */
 	public static List<File> sortInBatch(final BufferedReader fbr, final long datalength) throws IOException {
-		return sortInBatch(fbr, datalength, sortOnZOrder, DEFAULTMAXTEMPFILES, estimateAvailableMemory(),
+		return sortInBatch(fbr, datalength, comp, DEFAULTMAXTEMPFILES, estimateAvailableMemory(),
 				Charset.defaultCharset(), null, false, 0, false, true);
 	}
 
@@ -580,7 +558,7 @@ public class ExternalSort {
 	 *             generic IO exception
 	 */
 	public static List<File> sortInBatch(File file) throws IOException {
-		return sortInBatch(file, sortOnZOrder);
+		return sortInBatch(file, comp);
 	}
 
 	/**
@@ -808,31 +786,17 @@ public class ExternalSort {
 	/**
 	 * default comparator between z-order values.
 	 */
-	public static Comparator<String> sortOnZOrder = new Comparator<String>() {
+	public static Comparator<String> comp = new Comparator<String>() {
 		@Override
 		public int compare(String r1, String r2) {
-			String[] nodeOne = r1.split(";");
-			String[] nodeTwo = r2.split(";");
-			BigInteger zorderOne = new BigInteger(nodeOne[0]);
-			BigInteger zorderTwo = new BigInteger(nodeTwo[0]);
-			return zorderOne.compareTo(zorderTwo);
+			String[] valueOne = r1.split(";");
+			String[] valueTwo = r2.split(";");
+			BigInteger valOne = new BigInteger(valueOne[0]);
+			BigInteger valTwo = new BigInteger(valueTwo[0]);
+			return valOne.compareTo(valTwo);
 		}
 	};
-	
-	/**
-	 * default comparator between z-order values.
-	 */
-	public static Comparator<String> sortEdges = new Comparator<String>() {
-		@Override
-		public int compare(String r1, String r2) {
-			String[] edgeOne = r1.split(";");
-			String[] edgeTwo = r2.split(";");
-			BigInteger nodeOne = new BigInteger(edgeOne[0]);
-			BigInteger nodeTwo = new BigInteger(edgeTwo[0]);
-			return nodeOne.compareTo(nodeTwo);
-		}
-	};	
-	
+
 	/**
 	 * Default maximal number of temporary files allowed.
 	 */
