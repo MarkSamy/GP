@@ -7,14 +7,16 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import model.Files;
+
 public class WeightedEdges {
 
 	private static final int FLUSH_AMOUNT = 10000;
 
 	public void WeightedEdgesMain() throws IOException {
-		File join = new File("Join.txt");
+		File join = new File(Files.JOIN_FILE);
 		BufferedReader br = new BufferedReader(new FileReader(join));
-		PrintWriter tableWriter = new PrintWriter(new FileWriter("weightedEdges.txt"));
+		PrintWriter tableWriter = new PrintWriter(new FileWriter(Files.WEIGHTED_EDGES_FILE));
 		DistanceCaltulator distanceCaltulator = new DistanceCaltulator();
 		int nbEdges = 0;
 		String myString = br.readLine();
@@ -32,5 +34,8 @@ public class WeightedEdges {
 		}
 		tableWriter.close();
 		br.close();
+//		if(join.delete()){
+//			System.out.println("Deleted " + join.getName() + " successfully");
+//		}
 	}
 }
