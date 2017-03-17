@@ -48,8 +48,7 @@ public class Relation extends Element {
 	 * @return The role of this element, or null if no role
 	 */
 	public String getMemberRole(String string) {
-		String result = null;
-		
+		String result = null;		
 		boolean found = false;
 		int index = 0;
 		while(!found && index < members.size()) {
@@ -92,22 +91,6 @@ public class Relation extends Element {
 		
 		members.add(new Member(role, type, ref));
 	}
-	
-	/**
-	 * Removes a member
-	 * @param e The element to remove
-	 */
-//	public void removeMember(Element e) {
-//		boolean found = false;
-//		int index = 0;
-//		while(!found && index < members.size()) {
-//			if(members.get(index).elem == e) {
-//				found = true;
-//				members.remove(index);
-//			}
-//			index++;
-//		}
-//	}
 	
 //INNER CLASS Member
 	private class Member {
