@@ -4,13 +4,20 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
 
-public class AdjacencyListBuilder {
+import model.Files;
+
+public class AdjacencyListBuilder{
 	
 	public void TP_Main() throws IOException {
-		File file1 = new File("ZOrder.txt");
-		File file2 = new File("sortedEdges.txt");
-		FileWriter fileWriter = new FileWriter("list.txt");
+		File file1 = new File(Files.ZORDER_FILE);
+		File file2 = new File(Files.SORTED_EDGES);
+		FileWriter fileWriter = new FileWriter(Files.ADJACENCY_LIST);
 		merge(file1, file2, fileWriter);
+//		if(file1.delete() || file2.delete()){
+//			System.out.println(file1.getName() + " and " + file2.getName() + " deleted!");
+//		}else{
+//			System.out.println("Delete failed.");
+//		}
 	}
 
 	private void merge(File file1, File file2, FileWriter out) throws IOException {
@@ -42,9 +49,7 @@ public class AdjacencyListBuilder {
 				out.write(nodeZOrder + ";" + nodeId + ";");
 				while (nodeId.equals(edgeId)) {
 					out.write(edgesMatches[1]);
-
 					if (edgesScanner.hasNext()) {
-
 						str2 = edgesScanner.nextLine();
 						edgesMatches = str2.split(";");
 						edgeId = edgesMatches[0];
