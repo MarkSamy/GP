@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import model.Element;
+import model.Files;
 import model.Node;
 import model.Relation;
 import model.Way;
@@ -42,7 +43,6 @@ public class OSMParser extends DefaultHandler {
 	private int nbNodes = 0, nbWays = 0, nbRels = 0, nbEdges = 0;
 	private static final int FLUSH_AMOUNT = 10000;
 	private static double minLat = 2e9, maxLat = -2e9, minLong = 2e9, maxLong = -2e9;
-
 	// CONSTRUCTOR
 	public OSMParser() {
 		super();
@@ -63,16 +63,16 @@ public class OSMParser extends DefaultHandler {
 	 *             If an error occurs during parsing
 	 */
 	public Object parse(File f) throws IOException, SAXException {
-
+		
 		csvNodesBuild = null;
 		csvWaysBuild = null;
 		csvRelsBuild = null;
 
-		nodesFile = new File("nodes.txt");
-		nodesFile_Two = new File("nodesv2.txt");
-		waysFile = new File("ways.txt");
-		relsFile = new File("rels.txt");
-		edgesFile = new File("edges.txt");
+		nodesFile = new File(Files.NODES_FILE);
+		nodesFile_Two = new File(Files.NODES_LON_LAT);
+		waysFile = new File(Files.WAYS_FILE);
+		relsFile = new File(Files.RELS_FILE);
+		edgesFile = new File(Files.EDGES_FILE);
 		
 		nodesWriter = new PrintWriter(new FileWriter(nodesFile));
 		waysWriter = new PrintWriter(new FileWriter(waysFile));
@@ -80,7 +80,7 @@ public class OSMParser extends DefaultHandler {
 		edgesWriter = new PrintWriter(new FileWriter(edgesFile));
 		nodesWriter_Two = new PrintWriter(new FileWriter(nodesFile_Two));
 
-		dataFile = new File("data.txt");
+		dataFile = new File(Files.DATA_FILE);
 		dataWriter = new PrintWriter(new FileWriter(dataFile));
 
 		// File check
@@ -130,8 +130,8 @@ public class OSMParser extends DefaultHandler {
 		xr.setContentHandler(this);
 		xr.setErrorHandler(this);
 		xr.parse(input);
-
-		System.out.println(nbNodes + " " + nbWays + " " + nbRels + " " + nbEdges);
+		System.out.println("Nodes\t\tWays\t\tRelations\t\tEdges");
+		System.out.println(nbNodes + "\t\t" + nbWays + "\t\t" + nbRels + "\t\t" + nbEdges);
 
 		dataWriter.println(minLat + " " + maxLat + " " + minLong + " " + maxLong);
 
