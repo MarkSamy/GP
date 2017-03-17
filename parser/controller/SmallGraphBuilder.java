@@ -3,7 +3,9 @@ package controller;
 import java.io.*;
 import java.util.HashMap;
 
-public class SmallGraphBuilder {
+import model.Files;
+
+public class SmallGraphBuilder{
 
 	private static final int NODES_PER_PAGE = 4000;
 	private static final int FLUSH_AMOUNT = 10000;
@@ -20,24 +22,33 @@ public class SmallGraphBuilder {
 		return i;
 	}
 
-	public void generateSmallGraph() throws FileNotFoundException, IOException {
-		String file = "sortedlistTP.txt";
+	public void generateSmallGraph(String[] args) throws FileNotFoundException, IOException {
+		String file = args[0];
 		int maxLen = setOffsets(file);
 		int size = countLines(file);
 		// //// System.out.println(maxLen + " " + size);//253 15344731
 		int pageNo = 0;
-		PrintWriter smallGraphWriter = new PrintWriter(new FileWriter("smallgraph.txt"));
+		PrintWriter smallGraphWriter = new PrintWriter(new FileWriter(args[1]));
 		while (size > 0) {
-			loadPage("listTableEdited.txt", maxLen, pageNo, smallGraphWriter);
+			loadPage(Files.EDITED_ADJACENCY_LIST_OFFSETS, maxLen, pageNo, smallGraphWriter);
 			pageNo++;
 			smallGraphWriter.flush();
 			size -= NODES_PER_PAGE;
 		}
 		smallGraphWriter.close();
+//		File f = new File(Files.ADJACENCY_LIST_OFFSETS);
+//		File f2 = new File(Files.EDITED_ADJACENCY_LIST_OFFSETS);
+//		File f3 = new File(Files.ADJACENCY_LIST);
+//		if(f.delete() || f2.delete() || f3.delete()){
+//			System.out.println(f.getName() + " " + f2.getName() + " " + f3.getName() + " Deleted");
+//		}
+//		else{
+//			System.out.println("File Deletion Failed");
+//		}
 	}
 
 	private int setOffsets(String file) throws IOException {
-		PrintWriter writer = new PrintWriter(new FileWriter("listTable.txt"));
+		PrintWriter writer = new PrintWriter(new FileWriter(Files.ADJACENCY_LIST_OFFSETS));
 		BufferedReader brOne = new BufferedReader(new FileReader(file));
 		long sizeInBytes = 0;
 		writer.print(sizeInBytes + ";");
@@ -46,7 +57,7 @@ public class SmallGraphBuilder {
 		int index = 0;
 		int flush = 0;
 		while (s != null) {
-			sizeInBytes += (s.length() + 1);
+			sizeInBytes += (s.length() + 2);
 			index++;
 			if (index % NODES_PER_PAGE == 0) {
 				writer.println(sizeInBytes);
@@ -63,7 +74,7 @@ public class SmallGraphBuilder {
 		brOne.close();
 		writer.close();
 		int maxLen = 0;
-		BufferedReader brTwo = new BufferedReader(new FileReader("listTable.txt"));
+		BufferedReader brTwo = new BufferedReader(new FileReader(Files.ADJACENCY_LIST_OFFSETS));
 		String line = brTwo.readLine();
 		while (line != null) {
 			if (line.length() > maxLen) {
@@ -72,8 +83,8 @@ public class SmallGraphBuilder {
 			line = brTwo.readLine();
 		}
 		brTwo.close();
-		PrintWriter lTableWriter = new PrintWriter(new FileWriter("listTableEdited.txt"));
-		BufferedReader brThree = new BufferedReader(new FileReader("listTable.txt"));
+		PrintWriter lTableWriter = new PrintWriter(new FileWriter(Files.EDITED_ADJACENCY_LIST_OFFSETS));
+		BufferedReader brThree = new BufferedReader(new FileReader(Files.ADJACENCY_LIST_OFFSETS));
 		String myString = brThree.readLine();
 		int noLines = 0;
 		while (myString != null) {
@@ -105,7 +116,7 @@ public class SmallGraphBuilder {
 		String[] offsetsMatches = offsets.split(";");
 		startOffset = Long.parseLong(offsetsMatches[0]);
 		endOffset = Long.parseLong(offsetsMatches[1]);
-		OptimizedRandomAccessFile rafList = new OptimizedRandomAccessFile("list.txt", "r");
+		OptimizedRandomAccessFile rafList = new OptimizedRandomAccessFile(Files.SORTED_ADJACENCY_LIST, "r");
 		long temp = startOffset;
 		while (temp != endOffset) {
 			rafList.seek(temp);
@@ -114,7 +125,7 @@ public class SmallGraphBuilder {
 				String[] nodes = s.split(";");
 				hm.put(nodes[1], 0);
 			}
-			temp += (s.length() + 1);
+			temp += (s.length() + 2);
 		}
 		temp = startOffset;
 		while (temp != endOffset) {
@@ -137,7 +148,7 @@ public class SmallGraphBuilder {
 				pw.println();
 				sb = new StringBuilder();
 			}
-			temp += (s.length() + 1);
+			temp += (s.length() + 2);
 		}
 		rafList.close();
 	}
