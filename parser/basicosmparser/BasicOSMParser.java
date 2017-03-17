@@ -3,22 +3,22 @@ package basicosmparser;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import org.xml.sax.SAXException;
+import java.sql.SQLException;
+import java.util.LinkedList;
 
+import org.xml.sax.SAXException;
 import controller.*;
-import order.*;
+import database.Database;
+import model.Files;
 
 public class BasicOSMParser {
 
-	private void DoProject(String[] args) throws IOException, SAXException {
-		String[] argus = new String[1];
-//		 argus[0] = "egypt-latest.osm";
-		argus[0] = "new-york-latest.osm";
-//		 argus[0] = "maldives-latest.osm";
-		if (argus.length != 1) {
-			System.out.println("[ERROR] Invalid parameters.\nCommand usage: basicosmparser <Input OSM XML>");
+	private void parseOSM(String[] args) throws IOException, SAXException {
+		if (args.length != 1) {
+			Error e = new Error("\n[ERROR] Invalid parameters.\nCommand usage: basicosmparser <Input OSM XML>");
+			throw e;
 		} else {
-			File input = new File(argus[0]);
+			File input = new File(args[0]);
 			OSMParser parser = new OSMParser();
 			long start1 = System.nanoTime();
 			parser.parse(input);
@@ -27,72 +27,108 @@ public class BasicOSMParser {
 		}
 	}
 
-	private void DoZOrder() throws IOException {
+	private void calcZOrder() throws IOException {
 		Curve c = new Curve();
 		long start1 = System.nanoTime();
-		c.CurveMain();
+		c.CurveMain(new String[]{Files.NODES_LON_LAT,Files.ZORDER_FILE});
 		long time1 = System.nanoTime() - start1;
 		System.out.println("[INFO] Exported ZOrder ................... SUCCESS ["+ (time1 / 1e9) +"]");
 	}
 
-	private void SortEdges() throws IOException {
+	private void sortEdges() throws IOException {
 		ExternalSort es = new ExternalSort();
 		long start1 = System.nanoTime();
-		es.ExternalSortMain(0);
+		es.ExternalSortMain(new String[]{Files.EDGES_FILE,Files.SORTED_EDGES});
 		long time1 = System.nanoTime() - start1;
 		System.out.println("[INFO] Sorted edges ................... SUCCESS ["+ (time1 / 1e9) +"]");
 	}
 
-	private void SortZOrder() throws IOException {
+	private void sortAdjacencyList() throws IOException {
 		ExternalSort es = new ExternalSort();
 		long start1 = System.nanoTime();
-		es.ExternalSortMain(1);
+		es.ExternalSortMain(new String[]{Files.ADJACENCY_LIST,Files.SORTED_ADJACENCY_LIST});
 		long time1 = System.nanoTime() - start1;
-		System.out.println("[INFO] Sorted ZOrder ................... SUCCESS ["+ (time1 / 1e9) +"]");
+		System.out.println("[INFO] Sorted adjacency list ................... SUCCESS ["+ (time1 / 1e9) +"]");
 	}
 
-	private void SmallGraph() throws FileNotFoundException, IOException {
+	private void generateSmallGraph() throws FileNotFoundException, IOException {
 		SmallGraphBuilder sg = new SmallGraphBuilder();
 		long start1 = System.nanoTime();
-		sg.generateSmallGraph();
+		sg.generateSmallGraph(new String[]{Files.SORTED_ADJACENCY_LIST,Files.SMALL_GRAPH});
 		long time1 = System.nanoTime() - start1;
 		System.out.println("[INFO] Exported small graph ................... SUCCESS ["+ (time1 / 1e9) +"]");
 	}
 
-	private void SuperGraph() throws IOException {
+	private void generateSuperGraph() throws IOException {
 		SuperGraphBuilder sg = new SuperGraphBuilder();
 		long start1 = System.nanoTime();
-		sg.SuperGraphBuilderMain();
+		sg.SuperGraphBuilderMain(new String[]{Files.SMALL_GRAPH, Files.SUPER_GRAPH_EXTERNAL,Files.SUPER_GRAPH_INTERNAL});
 		long time1 = System.nanoTime() - start1;
 		System.out.println("[INFO] Exported super graph ................... SUCCESS ["+ (time1 / 1e9) +"]");
 	}
-
-	public static void main(String[] args) throws IOException, InterruptedException, SAXException {
-		// TODO Check arguments
+	
+	private void sortWeightedEdges() throws IOException {
+		ExternalSort es = new ExternalSort();
+		long start1 = System.nanoTime();
+		es.ExternalSortMain(new String[]{Files.WEIGHTED_EDGES_FILE,Files.WEIGHTED_EDGES_FILE_SORTED});
+		long time1 = System.nanoTime() - start1;
+		System.out.println("[INFO] Sorted weighted edges ................... SUCCESS ["+ (time1 / 1e9) +"]");
+	}
+	
+	
+	public static void main(String[] args) throws IOException, InterruptedException, SAXException, ClassNotFoundException, SQLException {
+		//TODO Remove this line in production
+		args = new String[]{Files.MALDIVES_FILE};
+		
 		BasicOSMParser bop = new BasicOSMParser();
-//		/*
-//		 * Parse OSM File and export it as 5 files ( nodes.txt , ways.txt ,
-//		 * rels.txt , nodesv2.txt(includes only nodes ids,lon and lat of each)
-//		 * and edges.txt
-//		 */
-		bop.DoProject(args);
-		bop.SortEdges();
-		/* Create the Hash Table of edges and export to table.txt */
-//		bop.CreateHashTable(); 
-								/*
-								 * Find Z-Order of each node and export to
-								 * ScaledNodes.txt
-								 */
-		bop.DoZOrder();
-		bop.AdjacencyList();
-		bop.SortZOrder();
-		bop.SmallGraph();
-		bop.SuperGraph();
-//		bop.FindWeights();
+		/**
+		 * Parse OSM File and export it as 5 files ( nodes.txt , ways.txt ,
+		 * rels.txt , nodesv2.txt(includes only nodes ids,lon and lat of each)
+		 * and edges.txt
+		 */
+		bop.parseOSM(args);
+		bop.sortEdges();
+		bop.joinFiles();
+		bop.calcZOrder(); // Find Z-Order of each node and export to ZOrder.txt
+		bop.generateAdjacencyList();
+		bop.sortAdjacencyList(); //Sort on ZOrder
+		bop.generateSmallGraph();
+		bop.generateSuperGraph();
+		bop.findWeights();
+		bop.sortWeightedEdges();
+		bop.dijkstra("2939387830","3132175255");
 	}
 
-	private void AdjacencyList() throws IOException {
-		// TODO Auto-generated method stub
+	private void dijkstra(String source, String dest) throws ClassNotFoundException, SQLException, IOException {
+		long start1 = System.nanoTime();
+		DijkstraAlgorithm dijkstra = new DijkstraAlgorithm();
+		dijkstra.execute(source);
+		long time1 = System.nanoTime() - start1;
+		System.out.println("[INFO] Dijkstra ................... SUCCESS ["+ (time1 / 1e9) +"]");
+		LinkedList<String> path = dijkstra.getPath(dest);
+		System.out.println("Vertices : ");
+		for (String vertex : path) {
+			System.out.println(vertex);
+		}
+		System.out.println("Distance : ");
+		System.out.println(dijkstra.getShortestDistance(dest));
+	}
+
+	private void joinFiles() throws ClassNotFoundException, SQLException, IOException {
+		File f = new File("test.db");
+		Database db = new Database();
+		if(!f.exists() || (f.exists() && f.length()==0)){
+			db.createTables();
+			db.loadEdges();
+			db.loadNodes();
+		}
+		long start1 = System.nanoTime();
+		db.join();
+		long time1 = System.nanoTime() - start1;
+		System.out.println("[INFO] Join ................... SUCCESS ["+ (time1 / 1e9) +"]");
+	}
+
+	private void generateAdjacencyList() throws IOException {
 		AdjacencyListBuilder tp = new AdjacencyListBuilder();
 		long start1 = System.nanoTime();
 		tp.TP_Main();
@@ -100,7 +136,7 @@ public class BasicOSMParser {
 		System.out.println("[INFO] Exported Adjacency list ................... SUCCESS ["+ (time1 / 1e9) +"]");
 	}
 
-	private void FindWeights() throws IOException {
+	private void findWeights() throws IOException {
 		WeightedEdges we = new WeightedEdges();
 		long start1 = System.nanoTime();
 		we.WeightedEdgesMain();
